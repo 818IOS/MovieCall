@@ -107,7 +107,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
         let imagePath = imgArray[indexPath.row]
         // add a description to the other view!
         let overview = overviewArray[indexPath.row]
-        presentDetail(sendTitle: movietitle, sendimg: imagePath)
+        presentDetail(sendTitle: movietitle, sendimg: imagePath, discript: overview)
         
         print(overview)
     }
@@ -115,10 +115,11 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
     
     
     // sending data and seguing ⚠️
-    func presentDetail(sendTitle: String, sendimg: String) {
+    func presentDetail(sendTitle: String, sendimg: String, discript: String) {
         let vc = storyboard?.instantiateViewController(withIdentifier: "detail") as! DetailPageViewController
         vc.movieTitle = sendTitle
         vc.imagePath = sendimg
+        vc.discript = discript
         self.navigationController?.pushViewController(vc, animated: true)
     }
     
