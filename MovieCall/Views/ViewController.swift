@@ -11,12 +11,7 @@ import UIKit
 
 class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate, UITableViewDataSource {
     
-// MARK: - THIS IS FROM MY IMAC
 
-    
-    
-    
-// MARK: THIS IS FROM MY IMAC FR FR 
     @IBOutlet weak var searchResults: UITableView!
     @IBOutlet weak var searchButton: UIButton!
     @IBOutlet weak var searchTextField: UITextField!
