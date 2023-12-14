@@ -20,6 +20,11 @@ class MovieSearchViewController: UIViewController, UITextFieldDelegate, UICollec
     @IBOutlet weak var searchTextField: UITextField!
     @IBOutlet weak var searchButtn: UIBarButtonItem!
     
+    // MARK: - TRANISTION ANIMATION VARIABLES
+    var selectedCell: MoviesCollectionViewCell?
+    var selectedImagebiewSnapshot: UIView?
+    var animator: Animator?
+    
     // MARK: - MOVIE DATA ARRAYS
     var movieTitle = [String]()
     var imgArray = [String]()
@@ -145,26 +150,6 @@ class MovieSearchViewController: UIViewController, UITextFieldDelegate, UICollec
         }
     }
     
-    
-    
-    /*
-    @IBAction func searchTap(_ sender: UIBarButtonItem) {
-        callMe(someTitle: searchituptextfield.text ?? "nada")
-        movieTitle.removeAll()
-        //movieCall.callApi(sometitle: searchTextField.text ?? "nada")
-        //movieCall.titleArray.removeAll()
-        searchTextField.text = ""
-        if searchTextField.state.isEmpty == true {
-            searchButtn.isEnabled = false
-        }
-        DispatchQueue.main.async {
-          self.movieResultsCollection.reloadData()
-            self.imgArray.removeAll()
-            self.imgBackgroundArray.removeAll()
-        }
-    }
-     */
-  
     // MARK: - COLLECTION VIEW SEARCH RESULTS ⚠️
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -237,8 +222,12 @@ class MovieSearchViewController: UIViewController, UITextFieldDelegate, UICollec
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let cell = collectionView.cellForItem(at: indexPath) as? MoviesCollectionViewCell
-        let sometghinh = cell?.moivePosterImage.snapshotView(afterScreenUpdates: false)
+        
+         selectedCell = collectionView.cellForItem(at: indexPath) as? MoviesCollectionViewCell
+        
+         selectedImagebiewSnapshot = selectedCell?.moivePosterImage.snapshotView(afterScreenUpdates: false)
+        
+        
         let titleid = titleid[indexPath.row]
         let movietitle = movieTitle[indexPath.row]
         let imagePath = imgArray[indexPath.row]
@@ -255,25 +244,16 @@ class MovieSearchViewController: UIViewController, UITextFieldDelegate, UICollec
     // presents other view
     func presentDetail(sendTitle: String, sendimg: String, discript: String, backDrop: String) {
         let vc = storyboard?.instantiateViewController(withIdentifier: "detail") as! DetailPageViewController
+        self.hidesBottomBarWhenPushed = true
         vc.movieTitle = sendTitle
         vc.imagePath = sendimg
         vc.discript = discript
         vc.backdropimg = backDrop
+        vc.transitioningDelegate = self
+        vc.modalPresentationStyle = .fullScreen
         present(vc, animated: true)
        // self.navigationController?.pushViewController(vc, animated: true)
     }
     
 }
-/*
-extension MovieSearchViewController: UIViewControllerAnimatedTransitioning {
-    func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
-        return 5
-    }
-    
-    func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
-        <#code#>
-    }
-    
-    
-}
-*/
+

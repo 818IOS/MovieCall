@@ -10,31 +10,41 @@ import UIKit
 // MARK: WE MADE A CHANGE GITHUB
 // MARK: WE ADDIN THIS FROM THE IMAC
 
-class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate, UITableViewDataSource {
+class ViewController: UIViewController, UITextFieldDelegate, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+  
     
     // MARK: FROM MY MACBOOK AIR BUT NOT REALLY
     // MARK: OK NO FR THIS ONE IS FROM MY MACBOOK AIR FR FR
     
-    @IBOutlet weak var searchResults: UITableView!
+    @IBOutlet weak var moviesLabel: UILabel!
     @IBOutlet weak var searchButton: UIButton!
-    @IBOutlet weak var searchTextField: UITextField!
+    @IBOutlet weak var collectionViewMovies: UICollectionView!
+    @IBOutlet weak var searchText: UITextField!
+    
+    
     var movieTitle = [String]()
     var imgArray = [String]()
     var overviewArray = [String]()
+    var imgBackgroundArray = [String]()
+    var titleid = [Int]()
+    
     
     var movieCall = MovieCall()
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        searchResults.delegate = self
-        searchResults.dataSource = self
-        searchTextField.delegate = self
-       if searchTextField.state.isEmpty == true {
+       
+        searchText.delegate = self
+        collectionViewMovies.delegate = self
+        collectionViewMovies.dataSource = self
+        
+       if searchText.state.isEmpty == true {
             self.searchButton.isEnabled = false
         }
     }
     
 
+    
 // MARK: - DATA CALLS ⚠️
     func callMe(someTitle: String) {
         Task {
@@ -44,10 +54,11 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
                     self.movieTitle.append(title.originalTitle)
                     self.imgArray.append(title.posterPath ?? "photo.fill")
                     self.overviewArray.append(title.overview)
-                }
-                
-                DispatchQueue.main.async {
-                    self.searchResults.reloadData()
+                    self.imgBackgroundArray.append(title.backdropPath ?? "photo.fill")
+                    self.titleid.append(title.id)
+                    DispatchQueue.main.async {
+                        self.collectionViewMovies.reloadData()
+                    }
                 }
             } catch {
                 print(error)
@@ -61,12 +72,13 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
        
         //movieCall.callApi(sometitle: textField.text ?? "empty")
         callMe(someTitle: textField.text ?? "empty")
+      
         textField.text = ""
         return true
     }
     
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-        let text = (searchTextField.text! as NSString).replacingCharacters(in: range, with: string)
+        let text = (searchText.text! as NSString).replacingCharacters(in: range, with: string)
         if text.isEmpty {
             searchButton.isEnabled = false
         } else {
@@ -80,22 +92,91 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
     // makes the api call
     @IBAction func searchTapped(_ sender: UIButton) {
       
-        callMe(someTitle: searchTextField.text ?? "nada")
+        callMe(someTitle: searchText.text ?? "nada")
         movieTitle.removeAll()
         //movieCall.callApi(sometitle: searchTextField.text ?? "nada")
         //movieCall.titleArray.removeAll()
-        searchTextField.text = ""
-        if searchTextField.state.isEmpty == true {
+        searchText.text = ""
+        if searchText.state.isEmpty == true {
             searchButton.isEnabled = false
         }
-        self.searchResults.reloadData()
-        self.imgArray.removeAll()
-      
+        DispatchQueue.main.async {
+          self.collectionViewMovies.reloadData()
+            self.imgArray.removeAll()
+            self.imgBackgroundArray.removeAll()
+        }
+   
     }
     
     
-// MARK: TABLE VIEW FOR SEARCH RESULTS
     
+    
+    
+// MARK: - COLLECTION VIEW SEARCH RESULTS ⚠️
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return movieTitle.count
+    }
+    
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "movie", for: indexPath) as! MoviesCollectionViewCell
+        
+        let movieimgs = imgArray[indexPath.row]
+        let movietitle = movieTitle[indexPath.row]
+        
+        DispatchQueue.main.async {
+            cell.moivePosterImage.load(urlString: movieimgs, contentview: cell)
+            cell.movieTitle.text = movietitle
+            let avg = cell.moivePosterImage.image?.averageColor
+            cell.contentView.backgroundColor = avg
+        }
+    
+        cell.layer.cornerRadius = 15
+        return cell
+    }
+
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        return 30
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        return 30
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let titleid = titleid[indexPath.row]
+        let movietitle = movieTitle[indexPath.row]
+        let imagePath = imgArray[indexPath.row]
+        // add a description to the other view!
+        let overview = overviewArray[indexPath.row]
+        let backdrop = imgBackgroundArray[indexPath.row]
+        print(titleid)
+        presentDetail(sendTitle: movietitle, sendimg: imagePath, discript: overview, backDrop: backdrop)
+    }
+    
+    
+    
+    // presents other view
+    func presentDetail(sendTitle: String, sendimg: String, discript: String, backDrop: String) {
+        let vc = storyboard?.instantiateViewController(withIdentifier: "detail") as! DetailPageViewController
+        vc.movieTitle = sendTitle
+        vc.imagePath = sendimg
+        vc.discript = discript
+        vc.backdropimg = backDrop
+        self.navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    
+    /*
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return CGSize(width: collectionView.frame.width / 2, height: collectionView.frame.height / 2)
+    }
+    */
+    
+// MARK: - TABLE VIEW FOR SEARCH RESULTS
+    /*
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         let numberTwo = movieTitle.count
         
@@ -107,7 +188,9 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
         let imagePath = imgArray[indexPath.row]
         // add a description to the other view!
         let overview = overviewArray[indexPath.row]
-        presentDetail(sendTitle: movietitle, sendimg: imagePath, discript: overview)
+        let backdrop = imgBackgroundArray[indexPath.row]
+        
+        presentDetail(sendTitle: movietitle, sendimg: imagePath, discript: overview, backDrop: backdrop)
         
         print(overview)
     }
@@ -115,11 +198,12 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
     
     
     // sending data and seguing ⚠️
-    func presentDetail(sendTitle: String, sendimg: String, discript: String) {
+    func presentDetail(sendTitle: String, sendimg: String, discript: String, backDrop: String) {
         let vc = storyboard?.instantiateViewController(withIdentifier: "detail") as! DetailPageViewController
         vc.movieTitle = sendTitle
         vc.imagePath = sendimg
         vc.discript = discript
+        vc.backdropimg = backDrop
         self.navigationController?.pushViewController(vc, animated: true)
     }
     
@@ -140,6 +224,9 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
         return cell
     }
     
+    
+    
+    */
 
 }
 
